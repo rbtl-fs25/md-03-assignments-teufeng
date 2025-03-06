@@ -1,0 +1,191 @@
+---
+title: "Data transformation with dplyr"
+subtitle: "Practice with penguins"
+author: ""
+format:
+  html:
+    embed-resources: true
+editor: visual
+execute:
+  warning: false
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+#| label: load-packages
+library(palmerpenguins)
+library(dplyr)
+```
+
+All exercises in this assignment use the `penguins` data as a starting point.
+
+1.  Run all code chunks above.
+2.  Run the code chunk that contains `glimpse(penguins)`.
+3.  How many variables are in the data set?
+4.  How many observations are in the data set?
+5.  What data types are contained in the variables? (Reminder: [https://rbtl-fs24.github.io/website/slides/lec-02-visualisation.html#/types-of-variables](https://ds4owd-001.github.io/website/slides/lec-02-visualisation.html#/types-of-variables){.uri})
+
+```{r}
+glimpse(penguins)
+```
+
+## Task 1: Create a subset of the data using filter()
+
+Use `filter()` to create a subset from `penguins` that only contains observations for Adelie penguins.
+
+```{r}
+penguins |> 
+  filter(species == "Adelie")
+```
+
+Use `filter()` to create a subset from `penguins` that only contains observations where body mass is less than or equal to 2900 g.
+
+```{r}
+penguins |> 
+  filter(body_mass_g <= 2900)
+```
+
+Use `filter()` to create a subset from `penguins` that only contains observations for Adelie penguins with a bill length greater than 40 mm.
+
+```{r}
+penguins |> 
+  filter(species == "Adelie" & bill_length_mm > 40)
+```
+
+Use `filter()` to create a subset from `penguins` that excludes observations for chinstraps.
+
+```{r}
+penguins |> 
+  filter(species != "Chinstrap")
+```
+
+Use `filter()` to create a subset from `penguins` that only contains gentoo penguins with a bill depth greater than or equal to 15.5 millimeters.
+
+```{r}
+penguins |> 
+  filter(species == "Gentoo" & bill_depth_mm >= 15.5)
+```
+
+Use `filter()` to create a subset from `penguins` that contains observations for male penguins recorded at Dream and Biscoe Islands.
+
+```{r}
+penguins |> 
+  filter(sex == "male", island %in% c("Dream", "Biscoe")) 
+```
+
+Use `filter()` to create a subset from `penguins` that contains observations for female Adelie penguins with bill lengths less than 35 mm.
+
+```{r}
+penguins |> 
+  filter(sex == "female", species == "Adelie", bill_length_mm < 35)
+```
+
+Use `filter()` to create a subset from `penguins` containing observations for female chinstrap penguins on Dream and Torgersen Islands.
+
+```{r}
+penguins |> 
+  filter(sex == "female", species == "Chinstrap", 
+         island %in% c("Dream", "Torgersen"))
+```
+
+Use `filter()` to create a subset from `penguins` that contains penguins that are either gentoos OR have a body mass greater than 4500 g.
+
+```{r}
+penguins |> 
+  filter(species == "Gentoo" | body_mass_g > 4500)
+```
+
+## Task 2: Add new columns with mutate()
+
+Add a column to `penguins` that contains a new column `flipper_m`, which is the `flipper_length_mm` (flipper length in millimeters) converted to units of meters.
+
+```{r}
+penguins |> 
+  mutate(flipper_m = flipper_length_mm / 1000)
+```
+
+Add a new column to `penguins` that contains a new column `body_mass_kg`, which is the `body_mass_g` (body mass in grams) converted to units of kilograms.
+
+```{r}
+penguins |> 
+  mutate(body_mass_kg = body_mass_g / 1000)
+```
+
+Add a new column to `penguins` that contains a new column `bill_ratio`, which is the ratio of bill length to bill depth.
+
+```{r}
+penguins |> 
+  mutate(bill_ratio = bill_length_mm / bill_depth_mm)
+```
+
+Add a new column called id to `penguins` with a sequence of values from 1 to the length of the data frame. Use `relocate()` to move the column to the first position in the data frame.
+
+```{r}
+penguins |> 
+  mutate(id = 1:n()) |> 
+  relocate(id)
+```
+
+## Task 3: Summarize data with group_by() and summarize() & count()
+
+Starting with `penguins`, group the data by species, then create a summary table containing the maximum and minimum length of flippers (call the columns flip_max and flip_min). How will you handle NA values?
+
+```{r}
+penguins |> 
+  group_by(species) |> 
+  summarize(flip_max = max(flipper_length_mm, na.rm = TRUE), 
+            flip_min = min(flipper_length_mm, na.rm = TRUE))
+```
+
+Starting with `penguins`, group the data by species and year, then create a summary table containing the mean bill depth (call this bill_depth_mean), the mean bill length (call this bill_length_mean), and the count for each group. How will you handle NA values?
+
+```{r}
+
+penguins |> 
+  filter(!is.na(bill_depth_mm), !is.na(bill_length_mm)) |>
+  group_by(species, year) |> 
+  summarize(bill_depth_mean = mean(bill_depth_mm), 
+            bill_length_mean = mean(bill_length_mm),
+            count = n())
+
+
+```
+
+Use the `count()` function to count the number of observations for each species in `penguins`.
+
+```{r}
+penguins |> 
+  count(species)
+```
+
+Use the `count()` function to count the number of observations for each species and island in `penguins`.
+
+```{r}
+
+penguins |> 
+  count(species, island)
+
+```
+
+Use `filter()` to create a subset from `penguins` that contains observations for female penguins recorded at Torgersen and Biscoe Islands. Then use add the pipe `|>` and `count()` to verify that you written the correct code.
+
+```{r}
+penguins |> 
+  filter(sex == "male", island %in% c("Dream", "Biscoe")) |> 
+  count(sex, island)
+```
+
+## Task 7: Data communication
+
+**In the YAML header (between the three dashes at the top of the document)**
+
+1.  Add your name as the author of this document
+2.  Render the document and fix any errors
+
+## Task 8: Stage, Commit & Push to GitHub
+
+1.  Open the Git pane in RStudio. It's in the top right corner in a separate tab.
+2.  **Stage** your changes by checking appropriate box next to all files (if you select one file with your mouse, you can then highlight them all with Ctrl + A on your keyboard and check all boxes).
+3.  Write a meaningful commit message (e.g. "Completed part a of homework assignment 03.) in the **Commit message** box.
+4.  Click **Commit**. Note that every commit needs to have a commit message associated with it.
